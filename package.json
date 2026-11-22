@@ -1,0 +1,15 @@
+{
+  "name": "mini-e-commerce-backend",
+  "version": "1.0.0",
+  "description": "This is a basic E-commerce with nodeJS.",
+  "private": true,
+  "engines": {
+    "node": ">=24.7.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "dev": "node --watch --env-file=.env src/server.js",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env src/server.js"
+  },
+  "type": "module"
+}
