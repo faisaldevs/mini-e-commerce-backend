@@ -144,7 +144,7 @@ npm run seed:admin   # M7: idempotent admin from ADMIN_EMAIL / ADMIN_PASSWORD
 
 Update this list as modules are confirmed complete.
 
-- [ ] M0 Setup & tooling
+- [x] M0 Setup & tooling
 - [ ] M1 HTTP deep dive + response helpers
 - [ ] M2 Router
 - [ ] M3 Body parser

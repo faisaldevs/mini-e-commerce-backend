@@ -1,7 +1,3 @@
-// TODO (testing phase): .env.test banao, test script update koro:
-//   "test": "node --env-file=.env.test --test"
-// Ekhon `npm test` JWT_SECRET missing error dibe — expected.
-
 // ─────────────────────────────────────────────────────────────
 // env.js — Environment configuration (validate only)
 //
@@ -39,11 +35,38 @@ const parsers = {
     return raw;
   },
 
-  int() {},
+  int(key, { fallback, min = -Infinity, max = Infinity }) {
+    const { raw, value } = read(key, fallback);
+    if (raw === undefined) return value;
+    const num = Number(raw);
 
-  bool() {},
+    if (!Number.isInteger(num)) {
+      throw new Error(`${key} must be an integer (got "${raw}")`);
+    }
+    if (num < min || num > max) {
+      throw new Error(`${key} must be between ${min} and ${max} (got ${num})`);
+    }
+    return num;
+  },
+
+  bool(key, { fallback } = {}) {
+    const { raw, value } = read(key, fallback);
+    if (raw === undefined) return value;
+
+    const normalized = raw.toLowerCase();
+    if (["true", "1", "yes"].includes(normalized)) return true;
+    if (["false", "0", "no"].includes(normalized)) return false;
+    throw new Error(`${key} must be a boolean (got "${raw}")`);
+  },
   enum(key, allowed, { fallback } = {}) {
-    // const val = parsers.string(key, { fallback });
+    const val = parsers.string(key, { fallback });
+
+    if (!allowed.includes(val)) {
+      throw new Error(
+        `${key} must be one of [${allowed.join(", ")}] (got "${val}")`,
+      );
+    }
+    return val;
   },
 };
 
@@ -68,7 +91,39 @@ function loadConfig() {
     }
   };
 
-  const NODE_ENV = check(() => {
-    parsers.enum;
-  });
+  const NODE_ENV = check(() =>
+    parsers.enum("NODE_ENV", ["development", "production", "test"], {
+      fallback: "development",
+    }),
+  );
+
+  const isProd = NODE_ENV === "production";
+
+  const config = {
+    NODE_ENV,
+    isProd,
+    isDev: NODE_ENV === "development",
+    isTest: NODE_ENV === "test",
+    PORT: check(() =>
+      parsers.int("PORT", { fallback: 8000, min: 1, max: 65535 }),
+    ),
+    // Production e weak secret allow na
+    // JWT_SECRET: check(() =>
+    //   parsers.string("JWT_SECRET", { minLength: isProd ? 32 : 0 }),
+    // ),
+
+    // MongoDB phase e uncomment korbe
+    // DATABASE_URL: check(() => parsers.mongoUri('DATABASE_URL')),
+  };
+
+  if (errors.length > 0) {
+    console.error(
+      "\n❌ Invalid environment configuration:\n" + errors.join("\n") + "\n",
+    );
+    process.exit(1);
+  }
+
+  return Object.freeze(config);
 }
+
+export const env = loadConfig();
