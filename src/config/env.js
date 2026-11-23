@@ -107,6 +107,27 @@ function loadConfig() {
     PORT: check(() =>
       parsers.int("PORT", { fallback: 8000, min: 1, max: 65535 }),
     ),
+    BODY_LIMIT_BYTES: check(() =>
+      parsers.int("BODY_LIMIT_BYTES", {
+        fallback: 1048576,
+        min: 1,
+        max: 10485760,
+      }),
+    ),
+    // Comma-separated allowlist; empty = no cross-origin browser access.
+    CORS_ORIGINS: check(() =>
+      parsers
+        .string("CORS_ORIGINS", { fallback: "" })
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    ),
+    RATE_LIMIT_WINDOW_MS: check(() =>
+      parsers.int("RATE_LIMIT_WINDOW_MS", { fallback: 60000, min: 1 }),
+    ),
+    RATE_LIMIT_MAX: check(() =>
+      parsers.int("RATE_LIMIT_MAX", { fallback: 100, min: 1 }),
+    ),
     // Production e weak secret allow na
     // JWT_SECRET: check(() =>
     //   parsers.string("JWT_SECRET", { minLength: isProd ? 32 : 0 }),
